@@ -1,4 +1,4 @@
-package com.datawobbler.formatter;
+package com.formatter;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
