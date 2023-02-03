@@ -21,10 +21,10 @@ public class RabbitMQConfig {
     String username;
 
     @Value("${spring.rabbitmq.password}")
-    private String password;
+	String password;
 
     @Value("${spring.rabbitmq.host}")
-    private String host;
+	String host;
 
     @Bean
     Queue queue() {
@@ -46,8 +46,8 @@ public class RabbitMQConfig {
 	@Bean
 	ConnectionFactory connectionFactory() {
 		CachingConnectionFactory cachingConnectionFactory = new CachingConnectionFactory(host);
-		cachingConnectionFactory.setUsername(username);
-		cachingConnectionFactory.setUsername(password);
+//		cachingConnectionFactory.setUsername(username);
+//		cachingConnectionFactory.setUsername(password);
 		return cachingConnectionFactory;
 	}
 
@@ -57,6 +57,7 @@ public class RabbitMQConfig {
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		simpleMessageListenerContainer.setConnectionFactory(connectionFactory());
 		simpleMessageListenerContainer.setQueues(queue());
+		System.out.println("setting queue to " + queueName);
 		simpleMessageListenerContainer.setMessageListener(new RabbitMQListener());
 		return simpleMessageListenerContainer;
 	}
