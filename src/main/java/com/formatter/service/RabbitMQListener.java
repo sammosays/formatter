@@ -19,7 +19,7 @@ public class RabbitMQListener {
             JSONObject record = records.getJSONObject(i);
             JSONArray unpackedFiles = record.getJSONArray("unpacked");
             for (int q = 0; q < unpackedFiles.length(); q++) {
-                JSONObject unpackedFile = records.getJSONObject(q);
+                JSONObject unpackedFile = unpackedFiles.getJSONObject(q);
                 String id = unpackedFile.getString("id");
                 String key = unpackedFile.getString("key");
                 String bucket = unpackedFile.getString("bucket");
