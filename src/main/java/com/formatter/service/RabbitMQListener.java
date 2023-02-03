@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class RabbitMQListener {
 
-    public void consumeMessage(byte[] message) {
-        log.info("Consumed Message: " + new String(message));
+    public void consumeMessage(String message) {
+        log.info("Consumed Message: " + message);
 
         // Process each unpacked file from each record
-        JSONObject obj = new JSONObject(new String(message));
+        JSONObject obj = new JSONObject(message);
         JSONArray records = obj.getJSONArray("Records");
         for (int i = 0; i < records.length(); i++) {
             JSONObject record = records.getJSONObject(i);
