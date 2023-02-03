@@ -4,7 +4,6 @@ import com.formatter.service.RabbitMQListener;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -12,14 +11,12 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
 	public static final String QUEUE_NAME = "formatter-queue";
-	@Value("${input.notification.rabbitmq.queue}")
- 	String queueName;
 
 	@Bean
 	SimpleMessageListenerContainer simpleMessageListenerContainer(ConnectionFactory connectionFactory, MessageListenerAdapter messageListenerAdapter) {
 		SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
 		simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
-		simpleMessageListenerContainer.setQueueNames(queueName);
+		simpleMessageListenerContainer.setQueueNames(QUEUE_NAME);
 		simpleMessageListenerContainer.setMessageListener(messageListenerAdapter);
 		return simpleMessageListenerContainer;
 	}
