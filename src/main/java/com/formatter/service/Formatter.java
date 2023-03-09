@@ -7,7 +7,10 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 @Service
 @Slf4j
@@ -36,8 +39,18 @@ public class Formatter {
 
                 try {
                     // download file from MinIO
-                    byte[] content = downloadFromMinio(key, bucket);
-                    log.info("content: " + new String(content));
+                    InputStream content = downloadFromMinio(key, bucket);
+                    //log.info("content: " + new String(content));
+
+                    // format the contents
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content));
+                    while((line = bufferedReader.readLine()) != null) {
+                        // add newline after each full stop
+                        builder.append(line.replaceAll("\\.\\s?","\\.\n"));
+                    }
+                    log.info(builder.toString());
 
                 } catch (Exception e) {
                     log.error("error processing s3 object - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
@@ -47,18 +60,18 @@ public class Formatter {
         }
     }
 
-    public byte[] downloadFromMinio(String key, String bucket) throws Exception {
+    public InputStream downloadFromMinio(String key, String bucket) throws Exception {
         MinioClient minioClient =
                 MinioClient.builder()
                         .endpoint(MINIO_ENDPOINT)
                         .credentials(System.getenv(MINIO_TOKEN_ENV_VAR), System.getenv(MINIO_SECRET_ENV_VAR))
                         .build();
 
-        InputStream obj = minioClient.getObject(GetObjectArgs.builder()
+        return minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(key)
                 .build());
 
-        return IOUtils.toByteArray(obj);
+        //return IOUtils.toByteArray(obj);
     }
 }
