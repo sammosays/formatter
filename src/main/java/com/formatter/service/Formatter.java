@@ -56,10 +56,11 @@ public class Formatter {
                     }
 
                     // upload formatted file to Minio
+                    byte[] formattedContent = builder.toString().getBytes();
                     uploadToMinio(key,
                             FORMATTED_BUCKET,
-                            new ByteArrayInputStream(builder.toString().getBytes()),
-                            builder.toString().getBytes().length);
+                            new ByteArrayInputStream(formattedContent),
+                            formattedContent.length);
 
                 } catch (Exception e) {
                     log.error("error - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
