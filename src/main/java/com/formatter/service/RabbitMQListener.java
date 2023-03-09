@@ -19,7 +19,7 @@ import java.util.Arrays;
 @Slf4j
 public class RabbitMQListener {
 
-    private static final String MINIO_ENDPOINT = "http://minio-service";
+    private static final String MINIO_ENDPOINT = "http://minio-service:9000";
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder
             .standard()
@@ -57,7 +57,7 @@ public class RabbitMQListener {
     }
 
     public byte[] downloadFromS3(String key, String bucket) throws IOException {
-        S3Object object = s3.getObject(key, bucket);
+        S3Object object = s3.getObject(bucket, key);
         return IOUtils.toByteArray(object.getObjectContent());
     }
 }
