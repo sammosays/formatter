@@ -1,13 +1,10 @@
 package com.formatter.service;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.util.IOUtils;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
@@ -16,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
@@ -25,12 +21,14 @@ import java.util.Arrays;
 public class RabbitMQListener {
 
     private static final String MINIO_ENDPOINT = "http://minio-service:9000";
+    private static final String MINIO_TOKEN_ENV_VAR = "MINIO_ACCESS_TOKEN";
+    private static final String MINIO_SECRET_ENV_VAR = "MINIO_ACCESS_SECRET";
 
-    private final AmazonS3 s3 = AmazonS3ClientBuilder
-            .standard()
-            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(MINIO_ENDPOINT, Regions.DEFAULT_REGION.getName()))
-            .withCredentials(new EnvironmentVariableCredentialsProvider()) // gets creds from injected secret env vars
-            .build();
+    private final MinioClient minioClient =
+            MinioClient.builder()
+                    .endpoint(MINIO_ENDPOINT)
+                    .credentials(System.getenv(MINIO_TOKEN_ENV_VAR), System.getenv(MINIO_SECRET_ENV_VAR))
+                    .build();
 
     public void consumeMessage(String message) {
         log.info("Consumed Message: " + message);
@@ -49,9 +47,9 @@ public class RabbitMQListener {
                 log.info("found key: {} - bucket: {}", key, bucket);
 
                 try {
-                    // download file from s3
+                    // download file from MinIO
                     byte[] content = downloadFromMinio(key, bucket);
-                    log.info("content: " + Arrays.toString(content));
+                    log.info("content: " + new String(content));
 
                 } catch (Exception e) {
                     log.error("error processing s3 object - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
@@ -62,14 +60,6 @@ public class RabbitMQListener {
     }
 
     public byte[] downloadFromMinio(String key, String bucket) throws Exception {
-//        S3Object object = s3.getObject(bucket, key);
-//        return IOUtils.toByteArray(object.getObjectContent());
-
-        MinioClient minioClient =
-                MinioClient.builder()
-                        .endpoint(MINIO_ENDPOINT)
-                        .credentials("AzsPRcioJ8aCuunm", "Mx2VUYufVrYlSQbvijglKUHSQJ1gHFvX")
-                        .build();
         InputStream obj = minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(key)
