@@ -1,9 +1,9 @@
 package com.formatter.service;
 
-import com.amazonaws.util.IOUtils;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -11,19 +11,14 @@ import java.io.InputStream;
 
 @Service
 @Slf4j
-public class RabbitMQListener {
+public class Formatter {
 
     private static final String MINIO_ENDPOINT = "http://minio-service:9000";
     private static final String MINIO_TOKEN_ENV_VAR = "MINIO_ACCESS_TOKEN";
     private static final String MINIO_SECRET_ENV_VAR = "MINIO_ACCESS_SECRET";
 
-    private final MinioClient minioClient =
-            MinioClient.builder()
-                    .endpoint(MINIO_ENDPOINT)
-                    .credentials(System.getenv(MINIO_TOKEN_ENV_VAR), System.getenv(MINIO_SECRET_ENV_VAR))
-                    .build();
 
-    public void consumeMessage(String message) {
+    public void consumeMessageFromRabbit(String message) {
         log.info("Consumed Message: " + message);
 
         // Process each unpacked file from each record
@@ -53,6 +48,12 @@ public class RabbitMQListener {
     }
 
     public byte[] downloadFromMinio(String key, String bucket) throws Exception {
+        MinioClient minioClient =
+                MinioClient.builder()
+                        .endpoint(MINIO_ENDPOINT)
+                        .credentials(System.getenv(MINIO_TOKEN_ENV_VAR), System.getenv(MINIO_SECRET_ENV_VAR))
+                        .build();
+
         InputStream obj = minioClient.getObject(GetObjectArgs.builder()
                 .bucket(bucket)
                 .object(key)

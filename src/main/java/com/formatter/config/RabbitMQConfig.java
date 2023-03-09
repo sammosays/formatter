@@ -1,6 +1,6 @@
 package com.formatter.config;
 
-import com.formatter.service.RabbitMQListener;
+import com.formatter.service.Formatter;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
@@ -22,7 +22,7 @@ public class RabbitMQConfig {
 	}
 
 	@Bean
-	MessageListenerAdapter messageListenerAdapter(RabbitMQListener rabbitMQListener) {
-		return new MessageListenerAdapter(rabbitMQListener, "consumeMessage");
+	MessageListenerAdapter messageListenerAdapter(Formatter formatter) {
+		return new MessageListenerAdapter(formatter, "consumeMessageFromRabbit");
 	}
 }
