@@ -17,7 +17,7 @@ import java.util.Arrays;
 @Slf4j
 public class RabbitMQListener {
 
-    private final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.DEFAULT_REGION).build();
+    private final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
 
     public void consumeMessage(String message) {
         log.info("Consumed Message: " + message);
