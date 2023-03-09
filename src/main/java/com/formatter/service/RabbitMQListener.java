@@ -20,7 +20,7 @@ public class RabbitMQListener {
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder
             .standard().withRegion(Regions.US_EAST_1)
-            .withCredentials(new EnvironmentVariableCredentialsProvider())
+            .withCredentials(new EnvironmentVariableCredentialsProvider()) // picks creds from injected secret env vars
             .build();
 
     public void consumeMessage(String message) {
@@ -45,7 +45,7 @@ public class RabbitMQListener {
                     log.info("content: " + Arrays.toString(content));
 
                 } catch (Exception e) {
-                    System.err.println(String.format("error downloading s3 object - key: %s - bucket: %s - %s",
+                    System.err.println(String.format("error processing s3 object - key: %s - bucket: %s - %s",
                             key, bucket, e.getMessage()));
                 }
             }
@@ -54,7 +54,7 @@ public class RabbitMQListener {
     }
 
     public byte[] downloadFromS3(String key, String bucket) throws IOException {
-        S3Object object = s3.getObject("bucket", "key");
+        S3Object object = s3.getObject(key, bucket);
         return IOUtils.toByteArray(object.getObjectContent());
     }
 }
