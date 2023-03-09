@@ -8,17 +8,13 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.util.IOUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 @Service
@@ -66,9 +62,6 @@ public class RabbitMQListener {
 
     public byte[] downloadFromS3(String key, String bucket) throws IOException {
         S3Object object = s3.getObject(bucket, key);
-        S3ObjectInputStream inputStream = object.getObjectContent();
-        FileUtils.copyInputStreamToFile(inputStream, new File("hello.txt"));
-        //return IOUtils.toByteArray(object.getObjectContent());
-        return "random string".getBytes(StandardCharsets.UTF_8);
+        return IOUtils.toByteArray(object.getObjectContent());
     }
 }
