@@ -1,5 +1,6 @@
 package com.formatter.service;
 
+import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
@@ -17,7 +18,10 @@ import java.util.Arrays;
 @Slf4j
 public class RabbitMQListener {
 
-    private final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
+    private final AmazonS3 s3 = AmazonS3ClientBuilder
+            .standard().withRegion(Regions.US_EAST_1)
+            .withCredentials(new EnvironmentVariableCredentialsProvider())
+            .build();
 
     public void consumeMessage(String message) {
         log.info("Consumed Message: " + message);
