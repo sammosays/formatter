@@ -23,7 +23,6 @@ public class RabbitMQListener {
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder
             .standard()
-            .withRegion(Regions.DEFAULT_REGION)
             .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(MINIO_ENDPOINT, Regions.DEFAULT_REGION.getName()))
             .withCredentials(new EnvironmentVariableCredentialsProvider()) // picks creds from injected secret env vars
             .build();
@@ -44,14 +43,13 @@ public class RabbitMQListener {
                 String bucket = unpackedFile.getString("bucket");
                 log.info("found key: {} - bucket: {}", key, bucket);
 
-                // download file from s3
                 try {
+                    // download file from s3
                     byte[] content = downloadFromS3(key, bucket);
                     log.info("content: " + Arrays.toString(content));
 
                 } catch (Exception e) {
-                    System.err.println(String.format("error processing s3 object - key: %s - bucket: %s - %s",
-                            key, bucket, e.getMessage()));
+                    log.error("error processing s3 object - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
                 }
             }
 
