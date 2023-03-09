@@ -40,7 +40,7 @@ public class RabbitMQListener {
                     byte[] content = downloadFromS3(key, bucket);
                     log.info("content: " + Arrays.toString(content));
 
-                } catch (IOException e) {
+                } catch (Exception e) {
                     System.err.println(String.format("error downloading s3 object - key: %s - bucket: %s - %s",
                             key, bucket, e.getMessage()));
                 }
