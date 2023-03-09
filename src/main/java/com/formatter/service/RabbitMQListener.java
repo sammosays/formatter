@@ -19,12 +19,12 @@ import java.util.Arrays;
 @Slf4j
 public class RabbitMQListener {
 
-    private static final String MINIO_ENDPOINT = "http://minio-service:9000";
+    private static final String MINIO_ENDPOINT = "http://minio-service";
 
     private final AmazonS3 s3 = AmazonS3ClientBuilder
             .standard()
             .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(MINIO_ENDPOINT, Regions.DEFAULT_REGION.getName()))
-            .withCredentials(new EnvironmentVariableCredentialsProvider()) // picks creds from injected secret env vars
+            .withCredentials(new EnvironmentVariableCredentialsProvider()) // gets creds from injected secret env vars
             .build();
 
     public void consumeMessage(String message) {
