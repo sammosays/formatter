@@ -52,7 +52,7 @@ public class Formatter {
                     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content));
                     while((line = bufferedReader.readLine()) != null) {
                         // add newline after each full stop
-                        builder.append(line.replaceAll(".\\s?",".\n").trim());
+                        builder.append(line.replaceAll("\\.\\s?","\\.\n").trim());
                     }
 
                     // upload formatted file to Minio
