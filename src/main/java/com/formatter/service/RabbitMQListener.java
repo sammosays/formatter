@@ -1,10 +1,5 @@
 package com.formatter.service;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.IOUtils;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
@@ -12,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-
 import java.io.InputStream;
-import java.util.Arrays;
 
 @Service
 @Slf4j
