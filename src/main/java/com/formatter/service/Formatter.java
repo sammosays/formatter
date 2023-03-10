@@ -61,7 +61,6 @@ public class Formatter {
                     // format the contents
                     StringBuilder builder = new StringBuilder();
                     String line;
-
                     try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content))) {
                         while ((line = bufferedReader.readLine()) != null) {
                             // add newline after each full stop
@@ -87,7 +86,7 @@ public class Formatter {
                     log.error("error - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
                 }
             }
-            record.append("formatted", formattedObjects);
+            record.put("formatted", formattedObjects);
             updatedRecords.put(record);
         }
         // publish to rabbit
