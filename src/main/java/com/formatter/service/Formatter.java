@@ -28,14 +28,18 @@ public class Formatter {
 
     public void consumeMessageFromRabbit(String message) {
         log.info("Consumed Message: " + message);
+        JSONArray updatedRecords = new JSONArray();
 
         // Process each unpacked file from each record
-        JSONObject obj = new JSONObject(message);
-        JSONArray records = obj.getJSONArray("Records");
+        JSONObject msg = new JSONObject(message);
+        JSONArray records = msg.getJSONArray("Records");
         for (int i = 0; i < records.length(); i++) {
             JSONObject record = records.getJSONObject(i);
             JSONArray unpackedFiles = record.getJSONArray("unpacked");
+
+            JSONArray formattedObjects = new JSONArray();
             for (int q = 0; q < unpackedFiles.length(); q++) {
+
                 JSONObject unpackedFile = unpackedFiles.getJSONObject(q);
                 String id = unpackedFile.getString("id");
                 String key = unpackedFile.getString("key");
@@ -45,28 +49,44 @@ public class Formatter {
                 try {
                     // download file from MinIO
                     InputStream content = downloadFromMinio(key, bucket);
+                    log.info("downloaded key: {} - bucket: {}", key, bucket);
 
                     // format the contents
                     StringBuilder builder = new StringBuilder();
                     String line;
-                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content));
-                    while((line = bufferedReader.readLine()) != null) {
-                        // add newline after each full stop
-                        builder.append(line.replaceAll("\\.\\s?","\\.\n").trim());
-                    }
 
-                    // upload formatted file to Minio
-                    byte[] formattedContent = builder.toString().getBytes();
-                    uploadToMinio(key,
-                            FORMATTED_BUCKET,
-                            new ByteArrayInputStream(formattedContent),
-                            formattedContent.length);
+                    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content))) {
+                        while ((line = bufferedReader.readLine()) != null) {
+                            // add newline after each full stop
+                            builder.append(line.replaceAll("\\.\\s?", "\\.\n").trim());
+                        }
+                        log.info("formatted key: {} - bucket: {}", key, bucket);
+
+                        // upload formatted content to Minio
+                        byte[] formattedContent = builder.toString().getBytes();
+                        try (ByteArrayInputStream bais = new ByteArrayInputStream(formattedContent)) {
+                            uploadToMinio(key, FORMATTED_BUCKET, bais, formattedContent.length);
+                            log.info("uploaded formatted to key: {} - bucket: {}", key, FORMATTED_BUCKET);
+                        }
+
+                        // update the message
+                        formattedObjects.put(new JSONObject()
+                                .append("id", id)
+                                .append("key", key)
+                                .append("bucket", FORMATTED_BUCKET));
+                    }
 
                 } catch (Exception e) {
                     log.error("error - key: {} - bucket: {} - {}", key, bucket, e.getMessage());
                 }
             }
+            record.append("formatted", formattedObjects);
+            updatedRecords.put(record);
         }
+        // publish to rabbit
+        msg.append("Records", updatedRecords);
+        String updatedMessage = msg.toString();
+        log.info("published messaged: {}", updatedMessage);
     }
 
     public MinioClient getMinioClient() {
@@ -93,5 +113,6 @@ public class Formatter {
                         .object(key)
                         .stream(inputStream, size, -1)
                         .build());
+
     }
 }
