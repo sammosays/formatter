@@ -84,7 +84,7 @@ public class Formatter {
             updatedRecords.put(record);
         }
         // publish to rabbit
-        msg.append("Records", updatedRecords);
+        msg.put("Records", updatedRecords);
         String updatedMessage = msg.toString();
         log.info("published messaged: {}", updatedMessage);
     }
