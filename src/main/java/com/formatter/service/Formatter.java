@@ -6,6 +6,8 @@ import io.minio.PutObjectArgs;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -18,12 +20,17 @@ import java.io.InputStreamReader;
 @Slf4j
 public class Formatter {
 
+    private static final String FORMATTED_BUCKET = "formatted";
     private static final String MINIO_ENDPOINT = "http://minio-service:9000";
     private static final String MINIO_SECRET_ENV_VAR = "MINIO_ACCESS_SECRET";
     private static final String MINIO_TOKEN_ENV_VAR = "MINIO_ACCESS_TOKEN";
-    private static final String FORMATTED_BUCKET = "formatted";
+    private static final String PUBLISH_EXCHANGE = "dw";
+    private static final String PUBLISH_ROUTING_KEY = "processed-queue";
 
     private MinioClient minioClient = null;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
 
     public void consumeMessageFromRabbit(String message) {
@@ -49,7 +56,7 @@ public class Formatter {
                 try {
                     // download file from MinIO
                     InputStream content = downloadFromMinio(key, bucket);
-                    log.info("downloaded key: {} - bucket: {}", key, bucket);
+                    log.info("downloaded - key: {} - bucket: {}", key, bucket);
 
                     // format the contents
                     StringBuilder builder = new StringBuilder();
@@ -60,20 +67,20 @@ public class Formatter {
                             // add newline after each full stop
                             builder.append(line.replaceAll("\\.\\s?", "\\.\n").trim());
                         }
-                        log.info("formatted key: {} - bucket: {}", key, bucket);
+                        log.info("formatted - key: {} - bucket: {}", key, bucket);
 
                         // upload formatted content to Minio
                         byte[] formattedContent = builder.toString().getBytes();
                         try (ByteArrayInputStream bais = new ByteArrayInputStream(formattedContent)) {
                             uploadToMinio(key, FORMATTED_BUCKET, bais, formattedContent.length);
-                            log.info("uploaded formatted to key: {} - bucket: {}", key, FORMATTED_BUCKET);
+                            log.info("uploaded formatted content to key: {} - bucket: {}", key, FORMATTED_BUCKET);
                         }
 
                         // update the message
                         formattedObjects.put(new JSONObject()
-                                .append("id", id)
-                                .append("key", key)
-                                .append("bucket", FORMATTED_BUCKET));
+                                .put("id", id)
+                                .put("key", key)
+                                .put("bucket", FORMATTED_BUCKET));
                     }
 
                 } catch (Exception e) {
@@ -86,6 +93,7 @@ public class Formatter {
         // publish to rabbit
         msg.put("Records", updatedRecords);
         String updatedMessage = msg.toString();
+        rabbitTemplate.convertAndSend(PUBLISH_EXCHANGE, PUBLISH_ROUTING_KEY, updatedMessage);
         log.info("published messaged: {}", updatedMessage);
     }
 
